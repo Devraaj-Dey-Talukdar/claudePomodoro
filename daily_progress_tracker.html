@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Progress Tracker</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #8b5cf6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-light: #9ca3af;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-tertiary: #f3f4f6;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        [data-theme="dark"] {
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-light: #9ca3af;
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --bg-tertiary: #374151;
+            --border-color: #374151;
+            --gradient-bg: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--gradient-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: var(--bg-primary);
+            padding: 20px 30px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .datetime {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .time {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .date {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+        }
+
+        .todo-section, .sidebar {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .todo-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .todo-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 16px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: border-color 0.3s ease;
+        }
+
+        .todo-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .add-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .add-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .todo-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .todo-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+            cursor: move;
+        }
+
+        .todo-item:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .todo-item.completed {
+            opacity: 0.7;
+            text-decoration: line-through;
+        }
+
+        .todo-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .todo-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .todo-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .todo-meta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .priority-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .priority-high { background: #fef2f2; color: var(--danger-color); }
+        .priority-medium { background: #fef3c7; color: var(--warning-color); }
+        .priority-low { background: #f0fdf4; color: var(--success-color); }
+
+        .todo-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .pomodoro-timer {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .timer-display {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer-phase {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .timer-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        .timer-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .timer-btn.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .timer-settings {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .setting-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .setting-input {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            width: 100%;
+        }
+
+        .stats-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .quote-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            font-style: italic;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .focus-mode-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .focus-mode-content {
+            background: var(--bg-primary);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .fade-out {
+            animation: fadeOut 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(20px); }
+        }
+
+        .mode-toggle {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .mode-toggle:hover {
+            background: #7c3aed;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .time {
+                font-size: 2rem;
+            }
+
+            .todo-filters {
+                flex-wrap: wrap;
+            }
+
+            .timer-display {
+                font-size: 2.5rem;
+            }
+        }
+
+        .dragging {
+            opacity: 0.5;
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="container">
+        <header class="header">
+            <div class="datetime">
+                <div class="time" id="time">00:00:00</div>
+                <div class="date" id="date">Loading...</div>
+            </div>
+            <div class="header-controls">
+                <button class="mode-toggle" onclick="toggleFocusMode()">
+                    <i class="fas fa-eye"></i> Focus Mode
+                </button>
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-grid">
+            <div class="todo-section">
+                <h2 class="section-title">
+                    <i class="fas fa-tasks"></i> Today's Tasks
+                </h2>
+                
+                <div class="todo-input-group">
+                    <input type="text" class="todo-input" id="todoInput" placeholder="Add a new task...">
+                    <select id="prioritySelect" class="setting-input" style="width: auto;">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                    <input type="number" id="estimatedTime" class="setting-input" placeholder="mins" style="width: 80px;" min="1">
+                    <button class="add-btn" onclick="addTodo()">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+
+                <div class="todo-filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="pending">Pending</button>
+                    <button class="filter-btn" data-filter="completed">Completed</button>
+                    <button class="filter-btn" data-filter="high">High Priority</button>
+                </div>
+
+                <div class="todo-list" id="todoList"></div>
+            </div>
+
+            <div class="sidebar">
+                <div class="pomodoro-timer">
+                    <h3 class="section-title">
+                        <i class="fas fa-clock"></i> Pomodoro Timer
+                    </h3>
+                    
+                    <div class="timer-display" id="timerDisplay">25:00</div>
+                    <div class="timer-phase" id="timerPhase">Focus Session</div>
+                    
+                    <div class="timer-controls">
+                        <button class="timer-btn" id="startBtn" onclick="startTimer()">Start</button>
+                        <button class="timer-btn secondary" onclick="pauseTimer()">Pause</button>
+                        <button class="timer-btn secondary" onclick="resetTimer()">Reset</button>
+                        <button class="timer-btn secondary" onclick="skipTimer()">Skip</button>
+                    </div>
+
+                    <div class="timer-settings">
+                        <div class="setting-group">
+                            <label class="setting-label">Focus (min)</label>
+                            <input type="number" class="setting-input" id="focusTime" value="25" min="1">
+                        </div>
+                        <div class="setting-group">
+                            <label class="setting-label">Short Break (min)</label>
+                            <input type="number" class="setting-input" id="shortBreak" value="5" min="1">
+                        </div>
+                        <div class="setting-group">
+                            <label class="setting-label">Long Break (min)</label>
+                            <input type="number" class="setting-input" id="longBreak" value="15" min="1">
+                        </div>
+                        <div class="setting-group">
+                            <label class="setting-label">
+                                <input type="checkbox" id="autoStart"> Auto-start
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-section">
+                    <h3 class="section-title">Today's Stats</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="completedTasks">0</div>
+                            <div class="stat-label">Tasks Done</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="focusTime">0</div>
+                            <div class="stat-label">Focus Time</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalTasks">0</div>
+                            <div class="stat-label">Total Tasks</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="productivity">0%</div>
+                            <div class="stat-label">Productivity</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quote-section" id="dailyQuote">
+                    "The secret of getting ahead is getting started." - Mark Twain
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Focus Mode Overlay -->
+    <div class="focus-mode-overlay" id="focusMode">
+        <div class="focus-mode-content">
+            <h2 class="section-title">Focus Mode</h2>
+            <div class="timer-display" id="focusTimerDisplay">25:00</div>
+            <div class="timer-phase" id="focusTimerPhase">Focus Session</div>
+            <div class="timer-controls">
+                <button class="timer-btn" onclick="startTimer()">Start</button>
+                <button class="timer-btn secondary" onclick="pauseTimer()">Pause</button>
+                <button class="timer-btn secondary" onclick="resetTimer()">Reset</button>
+            </div>
+            <button class="timer-btn secondary" onclick="toggleFocusMode()" style="margin-top: 20px;">
+                Exit Focus Mode
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let todos = JSON.parse(localStorage.getItem('todos')) || [];
+        let timerState = {
+            minutes: 25,
+            seconds: 0,
+            isRunning: false,
+            phase: 'focus', // focus, shortBreak, longBreak
+            sessionCount: 0,
+            totalFocusTime: parseInt(localStorage.getItem('dailyFocusTime')) || 0
+        };
+        let timerInterval;
+        let currentFilter = 'all';
+        let draggedElement = null;
+
+        // Motivational quotes
+        const quotes = [
+            "The secret of getting ahead is getting started. - Mark Twain",
+            "Success is not final, failure is not fatal: it is the courage to continue that counts. - Winston Churchill",
+            "The only way to do great work is to love what you do. - Steve Jobs",
+            "Don't watch the clock; do what it does. Keep going. - Sam Levenson",
+            "The future depends on what you do today. - Mahatma Gandhi",
+            "It always seems impossible until it's done. - Nelson Mandela",
+            "Your limitation—it's only your imagination.",
+            "Push yourself, because no one else is going to do it for you.",
+            "Great things never come from comfort zones.",
+            "Dream it. Wish it. Do it."
+        ];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            updateClock();
+            updateDate();
+            renderTodos();
+            updateStats();
+            setupEventListeners();
+            loadSettings();
+            displayRandomQuote();
+            
+            // Update clock every second
+            setInterval(updateClock, 1000);
+            
+            // Update stats periodically
+            setInterval(updateStats, 30000);
+        });
+
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('time').textContent = timeString;
+        }
+
+        function updateDate() {
+            const now = new Date();
+            const dateString = now.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('date').textContent = dateString;
+        }
+
+        function displayRandomQuote() {
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('dailyQuote').textContent = randomQuote;
+        }
+
+        function setupEventListeners() {
+            // Todo input enter key
+            document.getElementById('todoInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addTodo();
+                }
+            });
+
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    renderTodos();
+                });
+            });
+
+            // Timer settings
+            ['focusTime', 'shortBreak', 'longBreak'].forEach(id => {
+                document.getElementById(id).addEventListener('change', saveSettings);
+            });
+        }
+
+        function addTodo() {
+            const input = document.getElementById('todoInput');
+            const priority = document.getElementById('prioritySelect').value;
+            const estimatedTime = document.getElementById('estimatedTime').value;
+            
+            const text = input.value.trim();
+            if (!text) return;
+
+            const todo = {
+                id: Date.now(),
+                text: text,
+                completed: false,
+                priority: priority,
+                estimatedTime: estimatedTime ? parseInt(estimatedTime) : null,
+                createdAt: new Date().toISOString()
+            };
+
+            todos.push(todo);
+            saveTodos();
+            renderTodos();
+            updateStats();
+
+            // Clear inputs
+            input.value = '';
+            document.getElementById('estimatedTime').value = '';
+            input.focus();
+        }
+
+        function toggleTodo(id) {
+            const todo = todos.find(t => t.id === id);
+            if (todo) {
+                todo.completed = !todo.completed;
+                if (todo.completed) {
+                    // Add completed animation
+                    const element = document.querySelector(`[data-id="${id}"]`);
+                    element.classList.add('fade-out');
+                    setTimeout(() => {
+                        element.classList.remove('fade-out');
+                        element.classList.add('fade-in');
+                    }, 300);
+                }
+                saveTodos();
+                renderTodos();
+                updateStats();
+            }
+        }
+
+        function deleteTodo(id) {
+            const element = document.querySelector(`[data-id="${id}"]`);
+            element.classList.add('fade-out');
+            
+            setTimeout(() => {
+                todos = todos.filter(t => t.id !== id);
+                saveTodos();
+                renderTodos();
+                updateStats();
+            }, 300);
+        }
+
+        function editTodo(id) {
+            const todo = todos.find(t => t.id === id);
+            if (!todo) return;
+
+            const newText = prompt('Edit task:', todo.text);
+            if (newText && newText.trim()) {
+                todo.text = newText.trim();
+                saveTodos();
+                renderTodos();
+            }
+        }
+
+        function renderTodos() {
+            const todoList = document.getElementById('todoList');
+            let filteredTodos = todos;
+
+            // Apply filter
+            switch (currentFilter) {
+                case 'pending':
+                    filteredTodos = todos.filter(t => !t.completed);
+                    break;
+                case 'completed':
+                    filteredTodos = todos.filter(t => t.completed);
+                    break;
+                case 'high':
+                    filteredTodos = todos.filter(t => t.priority === 'high');
+                    break;
+            }
+
+            todoList.innerHTML = filteredTodos.map(todo => `
+                <div class="todo-item ${todo.completed ? 'completed' : ''}" 
+                     data-id="${todo.id}"
+                     draggable="true">
+                    <input type="checkbox" class="todo-checkbox" 
+                           ${todo.completed ? 'checked' : ''} 
+                           onchange="toggleTodo(${todo.id})">
+                    <div class="todo-content">
+                        <div class="todo-text">${todo.text}</div>
+                        <div class="todo-meta">
+                            <span class="priority-badge priority-${todo.priority}">${todo.priority}</span>
+                            ${todo.estimatedTime ? `<span><i class="fas fa-clock"></i> ${todo.estimatedTime}m</span>` : ''}
+                            <span><i class="fas fa-calendar"></i> ${new Date(todo.createdAt).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                    <div class="todo-actions">
+                        <button class="action-btn" onclick="editTodo(${todo.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn" onclick="deleteTodo(${todo.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Setup drag and drop
+            setupDragAndDrop();
+        }
+
+        function setupDragAndDrop() {
+            const todoItems = document.querySelectorAll('.todo-item');
+            
+            todoItems.forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    draggedElement = this;
+                    this.classList.add('dragging');
+                });
+
+                item.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                    draggedElement = null;
+                });
+
+                item.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                });
+
+                item.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    if (draggedElement && draggedElement !== this) {
+                        const draggedId = parseInt(draggedElement.dataset.id);
+                        const targetId = parseInt(this.dataset.id);
+                        
+                        // Reorder todos array
+                        const draggedIndex = todos.findIndex(t => t.id === draggedId);
+                        const targetIndex = todos.findIndex(t => t.id === targetId);
+                        
+                        const [draggedTodo] = todos.splice(draggedIndex, 1);
+                        todos.splice(targetIndex, 0, draggedTodo);
+                        
+                        saveTodos();
+                        renderTodos();
+                    }
+                });
+            });
+        }
+
+        function saveTodos() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+
+        function updateStats() {
+            const completed = todos.filter(t => t.completed).length;
+            const total = todos.length;
+            const productivity = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            document.getElementById('completedTasks').textContent = completed;
+            document.getElementById('totalTasks').textContent = total;
+            document.getElementById('productivity').textContent = productivity + '%';
+            
+            // Focus time in hours and minutes
+            const hours = Math.floor(timerState.totalFocusTime / 60);
+            const minutes = timerState.totalFocusTime % 60;
+            document.getElementById('focusTime').textContent = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+        }
+
+        // Pomodoro Timer Functions
+        function startTimer() {
+            if (!timerState.isRunning) {
+                timerState.isRunning = true;
+                document.getElementById('startBtn').textContent = 'Running...';
+                
+                timerInterval = setInterval(() => {
+                    if (timerState.seconds === 0) {
+                        if (timerState.minutes === 0) {
+                            // Timer finished
+                            completeTimerPhase();
+                            return;
+                        }
+                        timerState.minutes--;
+                        timerState.seconds = 59;
